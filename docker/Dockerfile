@@ -1,7 +1,7 @@
 FROM nvidia/cuda:11.3.1-devel-ubuntu20.04
 
-RUN rm /etc/apt/sources.list.d/cuda.list
-RUN rm /etc/apt/sources.list.d/nvidia-ml.list
+RUN rm -f /etc/apt/sources.list.d/cuda.list
+RUN rm -f /etc/apt/sources.list.d/nvidia-ml.list
 
 RUN apt-get update && apt-get install wget -yq
 RUN apt-get install build-essential g++ gcc -y
