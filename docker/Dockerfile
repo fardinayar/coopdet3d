@@ -9,13 +9,17 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get install libgl1-mesa-glx libglib2.0-0 -y
 RUN apt-get install openmpi-bin openmpi-common libopenmpi-dev libgtk2.0-dev git curl -y
 
-# Install miniconda
-ENV CONDA_DIR /opt/conda
+# Install Miniconda
+ENV CONDA_DIR=/opt/conda
 RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
-     /bin/bash ~/miniconda.sh -b -p /opt/conda
-# Put conda in path so we can use conda activate
+    /bin/bash ~/miniconda.sh -b -p $CONDA_DIR && \
+    rm ~/miniconda.sh && \
+    $CONDA_DIR/bin/conda clean -afy
 ENV PATH=$CONDA_DIR/bin:$PATH
-RUN conda install python=3.8
+
+# Create and activate a Python 3.8 environment
+RUN conda create -y -n py38 python=3.8 && conda clean -afy
+ENV PATH=$CONDA_DIR/envs/py38/bin:$PATH
 RUN conda install pytorch==1.10.1 torchvision==0.11.2 torchaudio==0.10.1 cudatoolkit=11.3 -c pytorch
 RUN pip install Pillow==8.4.0
 RUN pip install tqdm
