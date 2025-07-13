@@ -2,11 +2,15 @@
 FROM nvidia/cuda:11.3.1-devel-ubuntu20.04
 
 # Step 1 — System dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential g++ gcc wget git curl ca-certificates \
-    libgl1-mesa-glx libglib2.0-0 \
-    libopenmpi-dev openmpi-bin \
-    && rm -rf /var/lib/apt/lists/*
+# Avoid timezone prompt
+ENV DEBIAN_FRONTEND=noninteractive
+RUN ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime && \
+    dpkg-reconfigure -f noninteractive tzdata && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        build-essential g++ gcc wget git curl ca-certificates \
+        libgl1-mesa-glx libglib2.0-0 libopenmpi-dev openmpi-bin && \
+    rm -rf /var/lib/apt/lists/*
 
 # Step 2 — Install Miniconda + Mamba
 RUN wget -qO /tmp/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
