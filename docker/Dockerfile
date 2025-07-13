@@ -33,26 +33,15 @@ RUN mamba create -y -n py38 python=3.8 \
 SHELL ["conda", "run", "--no-capture-output", "-n", "py38", "/bin/bash", "-c"]
 
 # ───────────────── python-level packages ────────
+RUN mamba install -y -n py38 intel-openmp && mamba clean -afy
 RUN pip install --no-cache-dir \
         Pillow==8.4.0 tqdm torchpack \
         -f https://download.openmmlab.com/mmcv/dist/cu113/torch1.10/index.html \
         mmcv-full==1.4.0 mmdet==2.20.0 \
         nuscenes-devkit mpi4py==3.0.3 numba==0.48.0 \
-        seaborn thop catkin_pkg empy rospkg open3d && \
-    python - <<'PY'
-import subprocess, sys, urllib.request, textwrap, os, tempfile
-
-url = "https://raw.githubusercontent.com/mit-han-lab/torchsparse/master/install.py"
-print(f"→ downloading TorchSparse installer from {url}")
-code = urllib.request.urlopen(url).read().decode()
-
-with tempfile.NamedTemporaryFile("w", delete=False, suffix=".py") as f:
-    f.write(textwrap.dedent(code))
-    tmp = f.name
-
-subprocess.run([sys.executable, tmp, "--cuda", "11.3"], check=True)
-os.remove(tmp)
-PY
+        seaborn thop catkin_pkg empy rospkg open3d
+RUN curl -sL https://raw.githubusercontent.com/mit-han-lab/torchsparse/master/install.py | \
+        python - --cuda 11.3
 
 # ───────────────── ROS bits (unchanged) ─────────
 RUN apt-get update && apt-get install -y --no-install-recommends \
