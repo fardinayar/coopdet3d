@@ -4,8 +4,11 @@ ENV DEBIAN_FRONTEND=noninteractive
 # ─── system deps ───
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        build-essential g++ gcc wget git curl \
-        libgl1-mesa-glx libglib2.0-0 ca-certificates && \
+        tzdata \
+        build-essential g++ gcc wget git curl ca-certificates \
+        libgl1-mesa-glx libglib2.0-0 libopenmpi-dev openmpi-bin && \
+    ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime && \
+    dpkg-reconfigure -f noninteractive tzdata && \
     rm -rf /var/lib/apt/lists/*
 
 # ─── miniconda + mamba ───
