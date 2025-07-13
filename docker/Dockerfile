@@ -1,10 +1,8 @@
 # Base image
 FROM nvidia/cuda:11.3.1-devel-ubuntu20.04
 
-# Avoid interactive prompts when installing tzdata
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install packages, including tzdata, and set timezone
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         tzdata \
@@ -13,6 +11,7 @@ RUN apt-get update && \
     ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime && \
     dpkg-reconfigure -f noninteractive tzdata && \
     rm -rf /var/lib/apt/lists/*
+
 
 
 # Step 2 — Install Miniconda + Mamba
