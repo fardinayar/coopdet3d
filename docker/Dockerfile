@@ -2,10 +2,11 @@ FROM nvidia/cuda:11.3.1-devel-ubuntu20.04
 ENV DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC
 
 # ───────── system deps ─────────
+# system packages ─ add the two open-mpi packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        build-essential g++ gcc wget git curl \
-        libgl1-mesa-glx libglib2.0-0 \
-        openmpi-bin libopenmpi-dev && \
+    build-essential g++ gcc wget git curl \
+    libgl1-mesa-glx libglib2.0-0 \
+    openmpi-bin libopenmpi-dev && \
     rm -rf /var/lib/apt/lists/*
 
 # ───────── miniconda + mamba ─────────
