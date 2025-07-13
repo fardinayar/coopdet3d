@@ -3,8 +3,9 @@ ENV DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC
 
 # ───────── system deps ─────────
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      build-essential g++ gcc wget git curl \
-      libgl1-mesa-glx libglib2.0-0 && \
+        build-essential g++ gcc wget git curl \
+        libgl1-mesa-glx libglib2.0-0 \
+        openmpi-bin libopenmpi-dev && \
     rm -rf /var/lib/apt/lists/*
 
 # ───────── miniconda + mamba ─────────
