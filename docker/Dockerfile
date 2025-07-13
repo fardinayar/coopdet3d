@@ -27,10 +27,11 @@ RUN mamba create -y -n py38 python=3.8 \
 SHELL ["conda", "run", "--no-capture-output", "-n", "py38", "/bin/bash", "-c"]
 
 # ───────── Intel OpenMP + ITT runtime ─────────
+# ───── Intel OpenMP + ITT runtime ─────
 RUN mamba install -y intel-openmp ittapi -c conda-forge && mamba clean -afy
 
-# make sure the linker can always see both libs
-ENV LD_PRELOAD="$CONDA_PREFIX/lib/libiomp5.so:$CONDA_PREFIX/lib/libittnotify.so"
+# Tell the dynamic linker where the libs live
+ENV LD_LIBRARY_PATH=/opt/conda/envs/py38/lib:$LD_LIBRARY_PATH
 
 # ───────── python-level packages ─────────
 RUN pip install --no-cache-dir \
