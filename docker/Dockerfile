@@ -45,8 +45,11 @@ RUN pip install --no-cache-dir \
     seaborn thop catkin_pkg empy rospkg open3d
 
 # Step 3 — Only now: run the TorchSparse installer
-RUN curl -sL https://raw.githubusercontent.com/mit-han-lab/torchsparse/master/install.py | \
-    python - --cuda 11.3
+RUN conda run -n py38 /bin/bash -c "\
+    export LD_LIBRARY_PATH=/opt/conda/envs/py38/lib:\$LD_LIBRARY_PATH && \
+    curl -sL https://raw.githubusercontent.com/mit-han-lab/torchsparse/master/install.py | \
+    python - --cuda 11.3"
+
 
 
 # ───────────────── ROS bits (unchanged) ─────────
