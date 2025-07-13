@@ -1,10 +1,16 @@
 FROM nvidia/cuda:11.3.1-devel-ubuntu20.04
 
 # ───────────────── system deps ──────────────────
+ARG DEBIAN_FRONTEND=noninteractive
+ENV TZ=Etc/UTC
+
+# system packages
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        build-essential git curl wget libgl1-mesa-glx libglib2.0-0 \
-        openmpi-bin openmpi-common libopenmpi-dev libgtk2.0-dev && \
+        build-essential g++ gcc wget git curl \
+        libgl1-mesa-glx libglib2.0-0 \
+        openmpi-bin openmpi-common libopenmpi-dev libgtk2.0-dev \
+        tzdata && \
     rm -rf /var/lib/apt/lists/*
 
 # ───────────────── Miniconda + Mamba ────────────
