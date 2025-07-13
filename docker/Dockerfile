@@ -1,16 +1,19 @@
 # Base image
 FROM nvidia/cuda:11.3.1-devel-ubuntu20.04
 
-# Step 1 — System dependencies
-# Avoid timezone prompt
+# Avoid interactive prompts when installing tzdata
 ENV DEBIAN_FRONTEND=noninteractive
-RUN ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime && \
-    dpkg-reconfigure -f noninteractive tzdata && \
-    apt-get update && \
+
+# Install packages, including tzdata, and set timezone
+RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+        tzdata \
         build-essential g++ gcc wget git curl ca-certificates \
         libgl1-mesa-glx libglib2.0-0 libopenmpi-dev openmpi-bin && \
+    ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime && \
+    dpkg-reconfigure -f noninteractive tzdata && \
     rm -rf /var/lib/apt/lists/*
+
 
 # Step 2 — Install Miniconda + Mamba
 RUN wget -qO /tmp/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
