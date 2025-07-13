@@ -33,17 +33,15 @@ RUN mamba create -y -n py38 python=3.8 \
 SHELL ["conda", "run", "--no-capture-output", "-n", "py38", "/bin/bash", "-c"]
 
 # ───────────────── python-level packages ────────
+# use –f to add the extra index hosting the cu113 / torch1.10 wheels
 RUN pip install --no-cache-dir \
-        Pillow==8.4.0 tqdm torchpack \
-        mmcv==1.4.0 mmcv-full==1.4.0 mmdet==2.20.0 \
-        nuscenes-devkit mpi4py==3.0.3 numba==0.48.0 \
-        seaborn thop catkin_pkg empy rospkg open3d && \
+      Pillow==8.4.0 tqdm torchpack \
+      -f https://download.openmmlab.com/mmcv/dist/cu113/torch1.10/index.html \
+      mmcv-full==1.4.0 mmdet==2.20.0 \
+      nuscenes-devkit mpi4py==3.0.3 numba==0.48.0 \
+      seaborn thop catkin_pkg empy rospkg open3d && \
     python - <<'PY'
-import subprocess, sys, textwrap, urllib.request
-code = urllib.request.urlopen(
-    "https://raw.githubusercontent.com/mit-han-lab/torchsparse/master/install.py"
-).read().decode()
-subprocess.run([sys.executable, "-c", code], check=True)
+…
 PY
 
 # ───────────────── ROS bits (unchanged) ─────────
