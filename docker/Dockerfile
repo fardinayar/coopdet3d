@@ -45,8 +45,21 @@ RUN pip install --no-cache-dir torch==1.10.1+cu113 torchvision==0.11.2+cu113 tor
 
 # ─────────────────────── 8. mpi4py & misc deps ───────────────────────────
 RUN mamba install -y -c conda-forge mpi4py=3.1.6 && mamba clean -afy
-RUN pip install --no-cache-dir Pillow==8.4.0 tqdm torchpack \ \
-    -f https://download.openmmlab.com/mmcv/dist/cu113/torch1.10/index.html mmcv-full==1.4.0 mmdet==2.20.0 nuscenes-devkit numba==0.48.0 seaborn thop catkin_pkg empy rospkg open3d
+RUN pip install --no-cache-dir \
+    Pillow==8.4.0 \
+    tqdm \
+    torchpack \
+    -f https://download.openmmlab.com/mmcv/dist/cu113/torch1.10/index.html \
+    mmcv-full==1.4.0 \
+    mmdet==2.20.0 \
+    nuscenes-devkit \
+    numba==0.48.0 \
+    seaborn \
+    thop \
+    catkin_pkg \
+    empy \
+    rospkg \
+    open3d
 
 # ─────────────────────── 9. TorchSparse build ────────────────────────────
 RUN curl -sL https://raw.githubusercontent.com/mit-han-lab/torchsparse/master/install.py | python - --cuda 11.3
