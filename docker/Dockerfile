@@ -33,7 +33,7 @@ RUN rosdep init && rosdep update
 ENV ROS_ROOT=/opt/ros/${ROS_DISTRO} \
     PATH=/opt/ros/${ROS_DISTRO}/bin:$PATH \
     LD_LIBRARY_PATH=/opt/ros/${ROS_DISTRO}/lib:$LD_LIBRARY_PATH \
-    PYTHONPATH=/opt/ros/${ROS_DISTRO}/lib/python3/dist-packages:$PYTHONPATH
+    PYTHONPATH=/opt/ros/${ROS_DISTRO}/lib/python3/dist-packages
 
 # ─────────────────────── 4. Miniconda + mamba ────────────────────
 RUN wget -qO /tmp/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
