@@ -95,7 +95,7 @@ ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 # 7. CoopDet3D checkout & C++/CUDA extension build
 ###############################################################################
 WORKDIR /workspace
-RUN git clone --depth 1 https://github.com/tum-traffic-dataset/coopdet3d.git
+RUN git clone https://github.com/tum-traffic-dataset/coopdet3d.git
 WORKDIR /workspace/coopdet3d
 
 # Build in “develop” mode (installs the Python pkg + compiles all C++/CUDA ops)
