@@ -1,24 +1,27 @@
 # ───────────────────────── 1. Base image ─────────────────────────
 FROM nvidia/cuda:11.3.1-devel-ubuntu20.04
 
-# ─────────────────────── 2. OS‑level deps ────────────────────────
+# ─────────────────────── 2. OS‑level dependencies ────────────────
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
         tzdata build-essential g++ gcc wget git curl ca-certificates \
-        lsb-release gnupg2 cmake ninja-build libxcrypt-dev \
+        lsb-release gnupg2 cmake ninja-build libcrypt-dev \
         libgl1-mesa-glx libglib2.0-0 \
         libopenmpi-dev openmpi-bin \
     && ln -sf /usr/share/zoneinfo/Etc/UTC /etc/localtime \
     && echo "Etc/UTC" > /etc/timezone \
     && rm -rf /var/lib/apt/lists/*
 
+# Expose CUDA headers so C++ extensions can locate <cuda_runtime_api.h>
+ENV CUDA_HOME=/usr/local/cuda \
+    C_INCLUDE_PATH=/usr/local/cuda/include:$C_INCLUDE_PATH \
+    CPLUS_INCLUDE_PATH=/usr/local/cuda/include:$CPLUS_INCLUDE_PATH
+
 # ─────────────────────── 3. ROS Noetic (desktop‑full) ────────────
 ENV ROS_DISTRO=noetic
-RUN curl -fsSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc \
-        | gpg --dearmor -o /usr/share/keyrings/ros-archive-keyring.gpg && \
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] \
-         http://packages.ros.org/ros/ubuntu $(lsb_release -cs) main" \
-        > /etc/apt/sources.list.d/ros-latest.list
+RUN curl -fsSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | gpg --dearmor -o /usr/share/keyrings/ros-archive-keyring.gpg && \
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros/ubuntu $(lsb_release -cs) main" \
+      > /etc/apt/sources.list.d/ros-latest.list
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         python3-rosdep python3-rosinstall python3-rosinstall-generator python3-vcstool \
@@ -28,7 +31,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN rosdep init && rosdep update
 
-# ROS environment paths
 ENV ROS_ROOT=/opt/ros/${ROS_DISTRO} \
     PATH=/opt/ros/${ROS_DISTRO}/bin:$PATH \
     LD_LIBRARY_PATH=/opt/ros/${ROS_DISTRO}/lib:$LD_LIBRARY_PATH \
@@ -37,15 +39,15 @@ ENV ROS_ROOT=/opt/ros/${ROS_DISTRO} \
 # ─────────────────────── 4. Miniconda + mamba ────────────────────
 RUN wget -qO /tmp/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
     bash /tmp/miniconda.sh -b -p /opt/conda && rm /tmp/miniconda.sh
+
 ENV PATH=/opt/conda/bin:$PATH
 RUN conda install -y -c conda-forge mamba && conda clean -afy
 
 # ─────────────────────── 5. Conda env (Python 3.8) ───────────────
 RUN mamba create -y -n py38 python=3.8 && mamba clean -afy
-# Build steps hereafter run *inside* the env:
 SHELL ["conda", "run", "-n", "py38", "/bin/bash", "-c"]
 
-# ── Install matching GCC inside the env so build & runtime share libstdc++ ──
+# Use Conda’s own GCC so build & runtime share the same libstdc++
 RUN mamba install -y -c conda-forge gcc_linux-64=9.5.0 gxx_linux-64=9.5.0 libstdcxx-ng && mamba clean -afy
 
 # ─────────────────────── 6. Core DL stack via pip ────────────────
@@ -65,28 +67,20 @@ RUN pip install --no-cache-dir \
         seaborn thop catkin_pkg empy rospkg open3d
 
 # ─────────────────────── 9. TorchSparse build ────────────────────
-RUN curl -sL https://raw.githubusercontent.com/mit-han-lab/torchsparse/master/install.py | \
-    python - --cuda 11.3
+RUN curl -sL https://raw.githubusercontent.com/mit-han-lab/torchsparse/master/install.py | python - --cuda 11.3
 
-# ──────────────────── 10. CUDA header include path ───────────────
-ENV CPLUS_INCLUDE_PATH=/usr/local/cuda/include \
-    C_INCLUDE_PATH=/usr/local/cuda/include
-
-# ────────────────────── 11. Clone & install coopdet3d ────────────
+# ────────────────────── 10. Clone & install coopdet3d ────────────
 WORKDIR /workspace
 RUN git clone --depth 1 https://github.com/tum-traffic-dataset/coopdet3d.git
 WORKDIR /workspace/coopdet3d
 RUN python setup.py develop
 
-# ────────────────────── 12. Quality‑of‑life shell tweaks ─────────
-RUN echo 'source /opt/conda/etc/profile.d/conda.sh && conda activate py38' \
-         >> /etc/bash.bashrc && \
-    echo 'source /opt/ros/${ROS_DISTRO}/setup.bash'                \
-         >> /etc/bash.bashrc && \
-    echo 'cd /workspace/coopdet3d'                                 \
-         >> /etc/bash.bashrc
+# ────────────────────── 11. Quality‑of‑life shell tweaks ─────────
+RUN echo 'source /opt/conda/etc/profile.d/conda.sh && conda activate py38' >> /etc/bash.bashrc && \
+    echo 'source /opt/ros/${ROS_DISTRO}/setup.bash' >> /etc/bash.bashrc && \
+    echo 'cd /workspace/coopdet3d' >> /etc/bash.bashrc
 
-# ────────────────────── 13. Final setup ──────────────────────────
+# ────────────────────── 12. Entrypoint ───────────────────────────
 ENV PYTHONUNBUFFERED=1
 WORKDIR /workspace/coopdet3d
 CMD ["/bin/bash"]
