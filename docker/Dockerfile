@@ -45,7 +45,9 @@ RUN conda install -y -c conda-forge mamba && conda clean -afy
 RUN mamba create -y -n py38 python=3.8 && mamba clean -afy
 # Build steps hereafter run *inside* the env:
 SHELL ["conda", "run", "-n", "py38", "/bin/bash", "-c"]
-
+RUN mamba install -y -c conda-forge gcc_linux-64=9.5.0 gxx_linux-64=9.5.0 \
+                    libstdcxx-ng && mamba clean -afy
+                    
 # ─────────────────────── 6. Core DL stack via pip ────────────────
 RUN pip install --no-cache-dir \
         torch==1.10.1+cu113 torchvision==0.11.2+cu113 torchaudio==0.10.1 \
