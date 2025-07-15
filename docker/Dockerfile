@@ -85,7 +85,12 @@ RUN curl -sL https://raw.githubusercontent.com/mit-han-lab/torchsparse/master/in
 ###############################################################################
 ENV CUDA_HOME=/usr/local/cuda \
     TORCH_CUDA_ARCH_LIST="6.0;6.1;7.5;8.0+PTX"
-
+###############################################################################
+# 6b.  Make sure host compiler can see the CUDA headers & libs
+###############################################################################
+ENV CPLUS_INCLUDE_PATH=/usr/local/cuda/include:$CPLUS_INCLUDE_PATH
+ENV LIBRARY_PATH=/usr/local/cuda/lib64:$LIBRARY_PATH
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 ###############################################################################
 # 7. CoopDet3D checkout & C++/CUDA extension build
 ###############################################################################
