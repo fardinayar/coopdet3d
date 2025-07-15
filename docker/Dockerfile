@@ -1,13 +1,13 @@
 # ───────────────────────── 1. Base image ─────────────────────────
 FROM nvidia/cuda:11.3.1-devel-ubuntu20.04
 
-# ─────────────────────── 2. OS-level deps ────────────────────────
+# ─────────────────────── 2. OS‑level deps ────────────────────────
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
         tzdata build-essential g++ gcc wget git curl ca-certificates \
-        lsb-release gnupg2 cmake ninja-build libxcrypt-dev 
-        libgl1-mesa-glx libglib2.0-0      \
-        libopenmpi-dev openmpi-bin        \
+        lsb-release gnupg2 cmake ninja-build libxcrypt-dev \
+        libgl1-mesa-glx libglib2.0-0 \
+        libopenmpi-dev openmpi-bin \
     && ln -sf /usr/share/zoneinfo/Etc/UTC /etc/localtime \
     && echo "Etc/UTC" > /etc/timezone \
     && rm -rf /var/lib/apt/lists/*
@@ -20,7 +20,6 @@ RUN curl -fsSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc \
          http://packages.ros.org/ros/ubuntu $(lsb_release -cs) main" \
         > /etc/apt/sources.list.d/ros-latest.list
 
-# ⬇️  The *big* desktop‑full bundle plus a few extras you already listed
 RUN apt-get update && apt-get install -y --no-install-recommends \
         python3-rosdep python3-rosinstall python3-rosinstall-generator python3-vcstool \
         ros-noetic-desktop-full \
@@ -45,9 +44,10 @@ RUN conda install -y -c conda-forge mamba && conda clean -afy
 RUN mamba create -y -n py38 python=3.8 && mamba clean -afy
 # Build steps hereafter run *inside* the env:
 SHELL ["conda", "run", "-n", "py38", "/bin/bash", "-c"]
-RUN mamba install -y -c conda-forge gcc_linux-64=9.5.0 gxx_linux-64=9.5.0 \
-                    libstdcxx-ng && mamba clean -afy
-                    
+
+# ── Install matching GCC inside the env so build & runtime share libstdc++ ──
+RUN mamba install -y -c conda-forge gcc_linux-64=9.5.0 gxx_linux-64=9.5.0 libstdcxx-ng && mamba clean -afy
+
 # ─────────────────────── 6. Core DL stack via pip ────────────────
 RUN pip install --no-cache-dir \
         torch==1.10.1+cu113 torchvision==0.11.2+cu113 torchaudio==0.10.1 \
@@ -68,14 +68,17 @@ RUN pip install --no-cache-dir \
 RUN curl -sL https://raw.githubusercontent.com/mit-han-lab/torchsparse/master/install.py | \
     python - --cuda 11.3
 
-# ────────────────────── 10. Clone & install coopdet3d ────────────
+# ──────────────────── 10. CUDA header include path ───────────────
+ENV CPLUS_INCLUDE_PATH=/usr/local/cuda/include \
+    C_INCLUDE_PATH=/usr/local/cuda/include
+
+# ────────────────────── 11. Clone & install coopdet3d ────────────
 WORKDIR /workspace
 RUN git clone --depth 1 https://github.com/tum-traffic-dataset/coopdet3d.git
 WORKDIR /workspace/coopdet3d
-RUN python setup.py develop  # uses the already‑active py38 env
+RUN python setup.py develop
 
-# ────────────────────── 11. Quality‑of‑life shell tweaks ─────────
-# Auto‑activate py38 + ROS + cd into coopdet3d for every interactive shell
+# ────────────────────── 12. Quality‑of‑life shell tweaks ─────────
 RUN echo 'source /opt/conda/etc/profile.d/conda.sh && conda activate py38' \
          >> /etc/bash.bashrc && \
     echo 'source /opt/ros/${ROS_DISTRO}/setup.bash'                \
@@ -83,11 +86,7 @@ RUN echo 'source /opt/conda/etc/profile.d/conda.sh && conda activate py38' \
     echo 'cd /workspace/coopdet3d'                                 \
          >> /etc/bash.bashrc
 
-# ────────────────────── 12. Final setup ──────────────────────────
-─── 12. Final setup (add right before the ENV PYTHONUNBUFFERED) ────────────
-# Make CUDA headers visible when extensions are C++‑only (no .cu files)
-ENV CPLUS_INCLUDE_PATH=/usr/local/cuda/include \
-    C_INCLUDE_PATH=/usr/local/cuda/include
+# ────────────────────── 13. Final setup ──────────────────────────
 ENV PYTHONUNBUFFERED=1
 WORKDIR /workspace/coopdet3d
 CMD ["/bin/bash"]
