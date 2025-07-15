@@ -5,7 +5,7 @@ FROM nvidia/cuda:11.3.1-devel-ubuntu20.04
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
         tzdata build-essential g++ gcc wget git curl ca-certificates \
-        lsb-release gnupg2 cmake          \
+        lsb-release gnupg2 cmake ninja-build libxcrypt-dev 
         libgl1-mesa-glx libglib2.0-0      \
         libopenmpi-dev openmpi-bin        \
     && ln -sf /usr/share/zoneinfo/Etc/UTC /etc/localtime \
@@ -84,6 +84,10 @@ RUN echo 'source /opt/conda/etc/profile.d/conda.sh && conda activate py38' \
          >> /etc/bash.bashrc
 
 # ────────────────────── 12. Final setup ──────────────────────────
+─── 12. Final setup (add right before the ENV PYTHONUNBUFFERED) ────────────
+# Make CUDA headers visible when extensions are C++‑only (no .cu files)
+ENV CPLUS_INCLUDE_PATH=/usr/local/cuda/include \
+    C_INCLUDE_PATH=/usr/local/cuda/include
 ENV PYTHONUNBUFFERED=1
 WORKDIR /workspace/coopdet3d
 CMD ["/bin/bash"]
