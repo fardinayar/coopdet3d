@@ -20,7 +20,7 @@ RUN curl -fsSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | 
     gpg --dearmor -o /usr/share/keyrings/ros-archive-keyring.gpg
 
 # Initialise rosdep (no ROS distro packages are actually installed here) ----
-RUN rosdep init && rosdep update
+RUN rosdep init || echo "rosdep already initialized" && rosdep update
 
 # ───────────────────── 3. Miniconda & mamba stack ─────────────────────────
 RUN wget -qO /tmp/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
